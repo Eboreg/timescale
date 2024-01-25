@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Time scale</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="container">
+        <div id="header">
+            <p>Just roll your little mouse wheel to zoom in and out.</p>
+            <button id="reset-button-1ns">Zoom to 1 nanosecond</button>
+            <button id="reset-button-1s">Zoom to 1 second</button>
+            <button id="reset-button-1y">Zoom to 1 year</button>
+            <button id="reset-button-1000y">Zoom to 1000 years</button>
+        </div>
+        <div id="tooltips"></div>
+        <div id="timeline"></div>
+        <div>
+            <div id="scale">
+                <div class="scale-hr scale-hr-rest"></div>
+            </div>
+            <div id="scale-legends"></div>
+        </div>
+    </div>
+
+    <script src="lib/index.js"></script>
+</body>
+</html>
