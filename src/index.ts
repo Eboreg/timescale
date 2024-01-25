@@ -1,4 +1,4 @@
-import { Example, getTimescaleData, yearsToSeconds } from "./data";
+import { Example, Magnitude, getTimescaleData, yearsToSeconds } from "./data";
 
 interface Tooltip {
     container: HTMLDivElement;
@@ -17,6 +17,7 @@ const scaleLegends = document.getElementById("scale-legends");
 const timeline = document.getElementById("timeline");
 const tooltipContainer = document.getElementById("tooltips");
 const timescaleData = getTimescaleData();
+const exampleCount = Object.values(timescaleData).flatMap((m: Magnitude) => m.examples || []).length;
 
 let currentZoomLevel = 0;
 
@@ -30,20 +31,24 @@ function reverseArray<T>(arr: T[]): T[] {
 }
 
 function getMagnitudeByZoomLevel(zoomLevel: number): number | undefined {
-    return Object.keys(timescaleData)
-        .map((m) => parseFloat(m))
-        .filter((m) => m <= zoomLevel)
-        .sort((a, b) => b - a)
-        .at(0);
+    let magnitude = Math.floor(zoomLevel);
+    while (magnitude % 3 != 0) magnitude--;
+    return magnitude;
 }
 
 function drawExampleBackground(width: number, index: number, prepend: boolean = false): HTMLDivElement | undefined {
     if (timeline) {
+        const multiplier = exampleCount > 0 ? 255 / exampleCount : 1;
         const bg = document.createElement("div");
-        const greenBlue = Math.min(index * 5, 255);
+        if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+            const red = Math.max(255 - (multiplier * index), 0);
+            bg.style.backgroundColor = `rgb(${red}, 0, 0)`;
+        } else {
+            const greenBlue = Math.min(index * multiplier, 255);
+            bg.style.backgroundColor = `rgb(255, ${greenBlue}, ${greenBlue})`;
+        }
         bg.className = "timeline-bg";
         bg.style.width = `${width}%`;
-        bg.style.backgroundColor = `rgb(255, ${greenBlue}, ${greenBlue})`;
         if (prepend) timeline.prepend(bg);
         else timeline.appendChild(bg);
         return bg;
@@ -90,16 +95,14 @@ function createTooltip(example: Example, magnitude: number, left: number): Toolt
     const container = document.createElement("div");
     const text = document.createElement("div");
     const arrow = document.createElement("div");
-    // const interval = formatInterval(example.multiplier * Math.pow(10, magnitude));
 
     container.className = "tooltip-container hidden";
     text.className = "tooltip-text";
     arrow.className = "tooltip-arrow";
     text.textContent = example.text;
-    // tooltipText.textContent = `${example.text} (${interval})`;
     if (left > 90) {
         container.classList.add("reversed");
-        container.style.right = `${100 - left}%`;
+        container.style.right = `calc(${100 - left}% - 2px)`;
     } else {
         container.style.left = `${left}%`;
     }
@@ -225,19 +228,17 @@ function draw(zoomLevel: number) {
 }
 
 function zoomBy(zoomLevel: number, delta: number): number {
-    const magnitude = getMagnitudeByZoomLevel(zoomLevel);
     const newZoomLevel = parseFloat((zoomLevel + (delta / 1000)).toPrecision(12));
+    const magnitude = getMagnitudeByZoomLevel(newZoomLevel);
 
     if (magnitude != undefined) {
-        if (newZoomLevel > magnitude + 3 && timescaleData[magnitude + 3] == undefined) {
-            // We're at the right end of the scale, don't zoom out further.
-            return magnitude + 3;
-        } else if (timescaleData[magnitude - 3] != undefined) {
-            return newZoomLevel;
-        }
-    } else if (newZoomLevel >= currentZoomLevel) {
-        return newZoomLevel;
+        // Positive delta = zoom out
+        if (
+            (delta > 0 && timescaleData[magnitude] != undefined) ||
+            (delta < 0 && timescaleData[magnitude - 3] != undefined)
+        ) return newZoomLevel;
     }
+
     return zoomLevel;
 }
 
@@ -248,7 +249,6 @@ addEventListener("keydown", (event) => {
         if (event.key == "PageDown") currentZoomLevel = zoomBy(currentZoomLevel, 138);
         draw(currentZoomLevel);
     }
-    console.log(event.key);
 });
 
 document.getElementById("container")?.addEventListener("wheel", (event) => {
@@ -277,6 +277,8 @@ document.getElementById("reset-button-1000y")?.addEventListener("click", () => {
     draw(currentZoomLevel);
 });
 
-window.onload = () => {
-    draw(currentZoomLevel);
-};
+window.onload = () => { draw(currentZoomLevel) };
+
+if (window.matchMedia) {
+    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { draw(currentZoomLevel) });
+}

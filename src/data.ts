@@ -9,12 +9,14 @@ interface RawExample {
     text: string;
 }
 
+export interface Magnitude {
+    singular: string;
+    plural: string;
+    examples?: Example[];
+}
+
 interface Timescale {
-    [magnitude: number]: {
-        singular: string;
-        plural: string;
-        examples?: Example[];
-    };
+    [magnitude: number]: Magnitude;
 }
 
 const now = new Date();
