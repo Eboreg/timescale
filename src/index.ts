@@ -241,6 +241,16 @@ function zoomBy(zoomLevel: number, delta: number): number {
     return zoomLevel;
 }
 
+addEventListener("keydown", (event) => {
+    if (!event.ctrlKey && !event.metaKey && !event.shiftKey && ["PageUp", "PageDown"].includes(event.key)) {
+        event.preventDefault();
+        if (event.key == "PageUp") currentZoomLevel = zoomBy(currentZoomLevel, -138);
+        if (event.key == "PageDown") currentZoomLevel = zoomBy(currentZoomLevel, 138);
+        draw(currentZoomLevel);
+    }
+    console.log(event.key);
+});
+
 document.getElementById("container")?.addEventListener("wheel", (event) => {
     event.preventDefault();
     currentZoomLevel = zoomBy(currentZoomLevel, event.deltaY);
