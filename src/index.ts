@@ -198,20 +198,38 @@ function drawScale(magnitude: number, zoomLevel: number) {
 
         if (scaleLegends) {
             const scaleLegend = document.createElement("div");
+            const longformSeconds = document.createElement("div");
+
+            const zeros = magnitude > 0
+                ? Array(magnitude / 3).fill("000")
+                : magnitude < -3
+                    ? Array((Math.abs(magnitude) - 3) / 3).fill("000")
+                    : [];
 
             if (width < 1) {
                 scaleLegend.textContent = `100 ${timescaleData[magnitude].plural}`;
-                scaleLegend.style.width = `${width * 100}%`;
+                scaleLegend.style.width = longformSeconds.style.width = `${width * 100}%`;
+                if (magnitude >= 0) longformSeconds.textContent = `(100 ${zeros.join(" ")} s)`;
+                else if (magnitude == -3) longformSeconds.textContent = "(0,1 s)";
+                else longformSeconds.textContent = `(0,${zeros.join(" ")} 1 s)`;
             } else if (width < 10) {
                 scaleLegend.textContent = `10 ${timescaleData[magnitude].plural}`;
-                scaleLegend.style.width = `${width * 10}%`;
+                scaleLegend.style.width = longformSeconds.style.width = `${width * 10}%`;
+                if (magnitude >= 0) longformSeconds.textContent = `(10 ${zeros.join(" ")} s)`;
+                else if (magnitude == -3) longformSeconds.textContent = "(0,01 s)";
+                else longformSeconds.textContent = `(0,${zeros.join(" ")} 01 s)`;
             } else {
                 scaleLegend.textContent = `1 ${timescaleData[magnitude].singular}`;
-                scaleLegend.style.width = `${width}%`;
+                scaleLegend.style.width = longformSeconds.style.width = `${width}%`;
+                if (magnitude >= 0) longformSeconds.textContent = `(1 ${zeros.join(" ")} s)`;
+                else if (magnitude == -3) longformSeconds.textContent = "(0,001 s)";
+                else longformSeconds.textContent = `(0,${zeros.join(" ")} 001 s)`;
             }
             scaleLegend.className = "scale-legend";
+            longformSeconds.className = "scale-legend";
             scaleLegends.innerHTML = "";
             scaleLegends.appendChild(scaleLegend);
+            scaleLegends.appendChild(longformSeconds);
         }
 
         scale.appendChild(scaleHrRest);
